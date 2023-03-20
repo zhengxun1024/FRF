@@ -64,6 +64,7 @@ def weigth(SVM, train_data, classification_list):
     # 返回计算的权重
     return 0.5 * log(acc/(1-acc), 2)
 
+# 生成SVM分类器模型
 def SVM(dataset, dataset_idx):
     # 获取类别列表和分组数目
     classification_list = np.unique(dataset[dataset.columns[-1]])

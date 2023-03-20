@@ -27,9 +27,11 @@ def fold_split(dataset_idx, n_fold):
 
 # 处理训练集的标签，分为C类和no类
 def training_data_process(dataset, train_idx, C):
+    # 根据索引获取训练集数据
     training_data = dataset.iloc[train_idx]
     # 得到训练集标签名称
     label_class = training_data.columns[-1]
+    # 若当前实例属于当前类别标签就改为1，否则就改为0
     for i in train_idx:
         if training_data.loc[i, label_class] != C:
             training_data.loc[i, label_class] = 0
@@ -37,6 +39,7 @@ def training_data_process(dataset, train_idx, C):
             training_data.loc[i, label_class] = 1
     return training_data
 
+# 生成自适应增强树分类器模型
 def AdaBoost(dataset, dataset_idx, q_rounds):
     # 获取类别列表和分组数目
     classification_list = np.unique(dataset[dataset.columns[-1]])
@@ -47,20 +50,18 @@ def AdaBoost(dataset, dataset_idx, q_rounds):
     # 为每一个类别训练一组增强树
     AdaTree = {}
     for i in range(len(classification_list)):
-        # 选取训练集
         print(f"正在生成类别{classification_list[i]}的增强树训练集")
+        # 选取训练集并处理，将标签更改为1和0。1为当前类别，0为其他
         training_data = training_data_process(dataset, train_idx[i], classification_list[i])
         features_train = training_data[training_data.columns[:-1]]
         labels_train = training_data[training_data.columns[-1]]
-
-        # n_estimators表示迭代的次数
         print(f"正在生成类别{classification_list[i]}的增强树")
+        # 训练当前类别的SVM分类器，n_estimators表示迭代的次数
         Ada = AdaBoostClassifier(n_estimators=q_rounds)
         Ada.fit(features_train, labels_train.astype(int))
-
+        # 将分类器存放到字典里，形式为[类别：Ada]
         AdaTree[classification_list[i]] = Ada
         print("=" * 40)
-
     print(f"已完成各类别增强树分类器的生成！")
     print("=" * 40)
     return AdaTree
