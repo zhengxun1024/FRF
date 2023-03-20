@@ -1,84 +1,38 @@
-import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-import sys
-
-import FRF
-
-def plot_confusion_matrix(y_true, y_pred):
-    # unique classes
-    conf_mat = {}
-    classes = np.unique(y_true)
-    # C is positive class while True class is y_true or temp_true
-    for c in classes:
-        temp_true = y_true[y_true == c]
-        temp_pred = y_pred[y_true == c]
-        conf_mat[c] = {pred: np.sum(temp_pred == pred) for pred in classes}
-    print("Confusion Matrix: \n", pd.DataFrame(conf_mat))
-
-    # plot confusion matrix
-    plt.figure(figsize=(6, 6))
-    sns.heatmap(data=pd.DataFrame(conf_mat), annot=True, cmap=plt.get_cmap("Blues"), fmt='d')
-    plt.ylabel("Predicted")
-    plt.xlabel("Actual")
-    plt.title("Confusion Matrix")
-    plt.show()
-
-
-def calculate_metrics(y_true, y_pred):
-    # convert to integer numpy array
-    y_pred = np.array(y_pred)
-    y_true = np.array(y_true)
-
-    pre_list = []
-    rec_list = []
-    f1_list = []
-    # loop over unique classes
-    for c in np.unique(y_true):
-        # copy arrays
-        temp_true = y_true.copy()
-        temp_pred = y_pred.copy()
-
-        # positive class
-        temp_true[y_true == c] = '1'
-        temp_pred[y_pred == c] = '1'
-
-        # negative class
-        temp_true[y_true != c] = '0'
-        temp_pred[y_pred != c] = '0'
-
-        # tp, fp and fn
-        tp = np.sum(temp_pred[temp_pred == '1'] == temp_true[temp_pred == '1'])
-        tn = np.sum(temp_pred[temp_pred == '0'] == temp_true[temp_pred == '0'])
-        fp = np.sum(temp_pred[temp_pred == '1'] != temp_true[temp_pred == '1'])
-        fn = np.sum(temp_pred[temp_pred == '0'] != temp_true[temp_pred == '0'])
-
-        precision = tp / (tp + fp) * 100
-        recall = tp / (tp + fn) * 100
-        f1 = 2 * (precision * recall) / (precision + recall)
-
-        pre_list.append(precision)
-        rec_list.append(recall)
-        f1_list.append(f1)
-        print(
-            "Class {}: Precision = {:0.3f}    Recall = {:0.3f}    F1-Score = {:0.3f}".format(c, precision, recall, f1))
-
-    print("Average: Precision = {:0.3f}    Recall = {:0.3f}    F1-Score = {:0.3f}   Accuracy = {:0.3f}".
-          format(np.mean(pre_list),
-                 np.mean(rec_list),
-                 np.mean(f1_list),
-                 np.sum(y_pred == y_true) / y_pred.shape[0] * 100))
+import DatasetProcessing as DP
+from FuzzyRandomForest import FRF
+from SVM import SVM
+from AdaBoost import AdaBoost
+from Predict import predicted
+from sklearn.metrics import accuracy_score
+from ConfusionMatrix import calculate_metrics
+from ConfusionMatrix import plot_confusion_matrix
 
 if __name__ == '__main__':
+    # 获取数据集
+    dataset = DP.create_dataset()
+    classification = np.unique(dataset[dataset.columns[-1]])
+    # 8：2 划分数据集为训练集和测试集，这里划分的是index
+    train_idx, test_idx = DP.dataset_split(dataset.shape[0], random_state=0)
+    # 训练模糊随机森林分类器
+    frf = FRF(dataset, train_idx, tree_num=5, tree_max_deep=6)
+    # 训练一对多SVM分类器
+    svm, weigthSVM = SVM(dataset, train_idx)
+    # 训练自适应增强树分类器
+    ada = AdaBoost(dataset, train_idx, q_rounds=4)
 
-    y_pred, y_true = FRF.result(10, 9)
-    acc = (np.sum(y_true == y_pred) / y_true.shape[0]) * 100
-    print("Fold: Accuracy: {:.3f}".format(acc))
+    # 根据index获取测试集
+    testing_data = dataset.iloc[test_idx]
+
+    y_pred = predicted(frf, classification, 5, svm, weigthSVM, ada, testing_data)
+    y_true = testing_data[testing_data.columns[-1]]
+
+    acc = accuracy_score(y_pred, y_true)
+    print("Accuracy:\n", acc)
+
     # Calculate Overall Metrics
     print("\nOverall Metrics")
     # calculate precision, recall and f1-score
     calculate_metrics(y_true, y_pred)
     # plot confusion matrix
     plot_confusion_matrix(np.array(y_true), np.array(y_pred))
-
