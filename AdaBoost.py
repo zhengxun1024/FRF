@@ -38,11 +38,13 @@ def training_data_process(dataset, train_idx, C):
     return training_data
 
 def AdaBoost(dataset, dataset_idx, q_rounds):
+    # 获取类别列表和分组数目
     classification_list = np.unique(dataset[dataset.columns[-1]])
     train_set_num = len(classification_list)
+    # 对训练数据根据类别数量进行分组
     train_idx = fold_split(dataset_idx, n_fold=train_set_num)
 
-    # 训练模糊随机森林生成决策树
+    # 为每一个类别训练一组增强树
     AdaTree = {}
     for i in range(len(classification_list)):
         # 选取训练集
