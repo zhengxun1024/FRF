@@ -1,4 +1,4 @@
-import random
+import sys
 import numpy as np
 import pandas as pd
 
@@ -9,25 +9,28 @@ def create_dataset():
     #                              "marginaladhesion", "singleepithelialsize", "Barenuclei", "Chromatin", "Nucleoli",
     #                              "Mitoses", "class", ])
     # dataset = dataset.drop('ID', axis=1)
-    dataset = pd.read_csv('data/drug200.data')
 
-    for i in range(len(dataset['BP'])):
-        if dataset.loc[i, 'BP'] == 'HIGH':
-            dataset.loc[i, 'BP'] = random.randint(667, 1000)
-        if dataset.loc[i, 'BP'] == 'LOW':
-            dataset.loc[i, 'BP'] = random.randint(0, 333)
-        if dataset.loc[i, 'BP'] == 'NORMAL':
-            dataset.loc[i, 'BP'] = random.randint(333, 667)
+    # dataset = pd.read_csv('data/drug200.data')
+    # for i in range(len(dataset['BP'])):
+    #     if dataset.loc[i, 'BP'] == 'HIGH':
+    #         dataset.loc[i, 'BP'] = random.randint(667, 1000)
+    #     if dataset.loc[i, 'BP'] == 'LOW':
+    #         dataset.loc[i, 'BP'] = random.randint(0, 333)
+    #     if dataset.loc[i, 'BP'] == 'NORMAL':
+    #         dataset.loc[i, 'BP'] = random.randint(333, 667)
+    #
+    #     if dataset.loc[i, 'Cholesterol'] == 'HIGH':
+    #         dataset.loc[i, 'Cholesterol'] = round(random.uniform(0.7, 1), 4)
+    #     if dataset.loc[i, 'Cholesterol'] == 'NORMAL':
+    #         dataset.loc[i, 'Cholesterol'] = round(random.uniform(0.3, 0.7), 4)
+    #
+    #     if dataset.loc[i, 'Sex'] == 'F':
+    #         dataset.loc[i, 'Sex'] = 1
+    #     else:
+    #         dataset.loc[i, 'Sex'] = 0
 
-        if dataset.loc[i, 'Cholesterol'] == 'HIGH':
-            dataset.loc[i, 'Cholesterol'] = round(random.uniform(0.7, 1), 4)
-        if dataset.loc[i, 'Cholesterol'] == 'NORMAL':
-            dataset.loc[i, 'Cholesterol'] = round(random.uniform(0.3, 0.7), 4)
-
-        if dataset.loc[i, 'Sex'] == 'F':
-            dataset.loc[i, 'Sex'] = 1
-        else:
-            dataset.loc[i, 'Sex'] = 0
+    dataset = pd.read_csv('data/Mobile Price.csv')
+    # print(dataset)
 
     return dataset
 
